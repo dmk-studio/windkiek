@@ -1,0 +1,7 @@
+@font-face { font-family: Inter; font-weight: 400; src: url(fonts/Inter-400.ttf); }
+@font-face { font-family: Inter; font-weight: 800; src: url(fonts/Inter-800.ttf); }
+body { margin: 0; background: #fafaf7; color: #101010; font: 16px/1.6 Inter, system-ui, sans-serif; }
+main { max-width: 720px; margin: 0 auto; padding: 40px 16px 80px; }
+h1 { font-size: 36px; letter-spacing: -.02em; }
+h2 { font-size: 19px; margin-top: 32px; }
+a { color: inherit; }

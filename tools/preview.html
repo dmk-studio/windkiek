@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ePaper preview</title>
+<style>
+  @font-face { font-family: Inter; font-weight: 400; src: url(../site/fonts/Inter-400.ttf); }
+  @font-face { font-family: Inter; font-weight: 600; src: url(../site/fonts/Inter-600.ttf); }
+  @font-face { font-family: Inter; font-weight: 800; src: url(../site/fonts/Inter-800.ttf); }
+  body { margin: 0; padding: 24px; background: #3a3a3a; font: 13px sans-serif; color: #ddd; }
+  .frame { display: inline-block; padding: 18px; background: #222; border-radius: 10px; }
+  canvas { display: block; image-rendering: pixelated; background: #fff; }
+  .bar { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 14px 0; max-width: 836px; }
+  select { font: inherit; }
+</style>
+</head>
+<body>
+<div class="frame"><canvas id="c" width="800" height="480"></canvas></div>
+<div class="bar">
+  <label>Screen <select id="screen">
+    <option value="p0">Page 1</option><option value="p1">Page 2</option><option value="p2">Page 3 (single spot)</option>
+    <option value="wifi">Setup WiFi</option><option value="wifiReason">Setup WiFi after failures</option>
+    <option value="settings">Settings info</option><option value="nospots">No spots yet</option><option value="error">Error</option>
+  </select></label>
+  <label>Language <select id="lang"><option>de</option><option>en</option><option>nl</option></select></label>
+  <label>Unit <select id="unit"><option>kn</option><option>ms</option><option>kmh</option><option>bft</option></select></label>
+  <label><input type="checkbox" id="demo"> Demo data</label>
+  <label><input type="checkbox" id="offline"> Offline</label>
+  <label><input type="checkbox" id="morning"> Pretend it is 07:00</label>
+  <label><input type="checkbox" id="usb"> USB powered</label>
+</div>
+<p id="info">Loading …</p>
+<p style="max-width:836px">Layout draft for <code>src/render.cpp</code> (same code in <code>site/preview.js</code>).
+Open via a local web server, e.g. <code>python -m http.server</code> in the project folder, then
+<code>http://localhost:8000/tools/preview.html</code>. On the device the font is embedded as a 1-bit pixel font,
+so stroke widths differ slightly.</p>
+<script type="module">
+import { createScreen, fetchForecast, demoForecast, loadFonts, SPOTS_PER_PAGE } from "../site/preview.js";
+
+// Example spots (on the device they come from the settings page). dirs: bit i = wind from i * 22.5°
+const E_TO_W = 0b0001111111110000;  // E (4) .. W (12)
+const SPOTS = [
+  { name: "Mirns", lat: 52.8491, lon: 5.4846, dirs: E_TO_W, min: 14, sea: true },
+  { name: "Xanten", lat: 51.6853, lon: 6.4482, dirs: 0xffff, min: 14, sea: false },
+  { name: "Workum", lat: 52.9714, lon: 5.4267, dirs: 0b1111000000011111, min: 15, sea: true },
+  { name: "Brouwersdam", lat: 51.7614, lon: 3.8519, dirs: 0b1111111000000001, min: 16, sea: true },
+  { name: "Fehmarn Grüner Brink", lat: 54.5258, lon: 11.1689, dirs: 0xffff, min: 13, sea: true },
+];
+const screen = createScreen(document.getElementById("c"));
+const $ = id => document.getElementById(id);
+let live = null;
+
+async function draw() {
+  const s = { lang: $("lang").value, unit: $("unit").value };
+  const now = new Date();
+  if ($("morning").checked) now.setHours(7, 0);
+  const battery = $("usb").checked ? -1 : 78;
+  const sc = $("screen").value;
+  if (sc === "wifi") return screen.setupWifi(null);
+  if (sc === "wifiReason") return screen.setupWifi({ de: "Keine Verbindung zum WLAN „FRITZ!Box 7590“", en: "Cannot connect to WiFi “FRITZ!Box 7590”", nl: "Geen verbinding met wifi „FRITZ!Box 7590”" }[s.lang]);
+  if (sc === "settings") return screen.settingsInfo(s, "192.168.178.57", false);
+  if (sc === "nospots") return screen.settingsInfo(s, "192.168.178.57", true);
+  if (sc === "error") return screen.error(s, { de: "Keine Verbindung zum WLAN „FRITZ!Box 7590“", en: "Cannot connect to WiFi “FRITZ!Box 7590”", nl: "Geen verbinding met wifi „FRITZ!Box 7590”" }[s.lang], 78, 15);
+  const fcs = $("demo").checked || !live ? SPOTS.map((_, i) => demoForecast(i + 1, now.getTime())) : live;
+  const page = +sc.slice(1), pageCount = Math.ceil(SPOTS.length / SPOTS_PER_PAGE);
+  const idx = [page * 2, page * 2 + 1].filter(i => i < SPOTS.length);
+  screen.page(s, idx.map(i => SPOTS[i]), idx.map(i => fcs[i]), page, pageCount, !$("offline").checked, battery, now.getTime());
+}
+
+for (const id of ["screen", "lang", "unit", "demo", "offline", "morning", "usb"]) $(id).onchange = draw;
+await loadFonts();
+draw();
+try {
+  live = await Promise.all(SPOTS.map(fetchForecast));
+  $("info").textContent = `Live data from Open-Meteo, loaded ${new Date().toLocaleTimeString()}`;
+} catch (e) {
+  $("info").textContent = "Live data unavailable (" + e.message + "), showing demo data";
+}
+draw();
+</script>
+</body>
+</html>

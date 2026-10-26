@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Windkiek</title>
+<style>
+  :root { --ink: #111; --mute: #666; --line: #d6d6d6; --bg: #f4f4f2; --card: #fff; --ok: #1d7a3a; --err: #b3261e; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { background: var(--ink); color: #fff; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  header b { letter-spacing: .06em; }
+  header select { background: #222; color: #fff; border: 1px solid #444; border-radius: 6px; padding: 4px 6px; font: inherit; font-size: 14px; }
+  main { max-width: 560px; margin: 0 auto; padding: 16px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--mute); margin: 24px 0 8px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+  label { display: block; font-size: 14px; color: var(--mute); margin: 12px 0 4px; }
+  label:first-child { margin-top: 0; }
+  input[type=text], input[type=password], input[type=number], input[type=search], select.f { width: 100%; padding: 10px 12px; font: inherit; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+  input:focus, select:focus { outline: 2px solid var(--ink); outline-offset: -1px; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; min-width: 0; }
+  button { font: inherit; border-radius: 8px; padding: 10px 14px; border: 1px solid var(--ink); background: #fff; color: var(--ink); cursor: pointer; }
+  button.primary { background: var(--ink); color: #fff; width: 100%; padding: 14px; font-weight: 600; }
+  button.small { padding: 6px 10px; font-size: 14px; }
+  button.icon { padding: 6px 10px; border-color: var(--line); }
+  button:disabled { opacity: .4; cursor: default; }
+  .muted { color: var(--mute); font-size: 14px; }
+  .msg { padding: 12px 14px; border-radius: 8px; margin: 12px 0; font-size: 15px; }
+  .msg.ok { background: #e6f3ea; color: var(--ok); }
+  .msg.err { background: #fbe9e7; color: var(--err); }
+  .nets { border: 1px solid var(--line); border-radius: 8px; max-height: 260px; overflow-y: auto; }
+  .net { display: flex; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .net:last-child { border-bottom: 0; }
+  .net.sel { background: var(--ink); color: #fff; }
+  .spot-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .spot-head strong { flex: 1; font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .results { border: 1px solid var(--line); border-radius: 8px; margin-top: 4px; }
+  .results div { padding: 8px 12px; border-bottom: 1px solid var(--line); cursor: pointer; font-size: 15px; }
+  .results div:last-child { border-bottom: 0; }
+  .map { height: 260px; border-radius: 8px; margin-top: 8px; border: 1px solid var(--line); }
+  .compass { display: flex; gap: 16px; align-items: center; }
+  .compass svg { width: 190px; height: 190px; flex: none; touch-action: manipulation; }
+  .compass path { stroke: #fff; stroke-width: 1.5; cursor: pointer; }
+  .compass .on { fill: var(--ink); }
+  .compass .off { fill: #e4e4e1; }
+  .compass text { font-size: 9px; font-weight: 700; pointer-events: none; text-anchor: middle; dominant-baseline: central; }
+  .compass .side { display: flex; flex-direction: column; gap: 8px; }
+  .dirsum { margin-top: 10px; font-size: 15px; font-weight: 600; }
+  .dirsum.warn { color: var(--err); }
+  .check { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; font-size: 15px; color: var(--ink); }
+  .check input { width: 20px; height: 20px; margin: 1px 0 0; flex: none; }
+  footer { text-align: center; color: var(--mute); font-size: 13px; padding: 24px 16px 40px; }
+  footer a { color: inherit; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <b>WINDKIEK</b>
+  <select id="lang" aria-label="Language">
+    <option value="de">Deutsch</option>
+    <option value="en">English</option>
+    <option value="nl">Nederlands</option>
+  </select>
+</header>
+<main id="app"><p class="muted" data-t="loading"></p></main>
+<footer>
+  <span id="ver"></span> · <span data-t="data"></span> <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0)
+</footer>
+
+<script>
+"use strict";
+const T = {
+  de: {
+    loading: "Lade …", data: "Wetterdaten:",
+    wifiTitle: "WLAN einrichten", wifiIntro: "Wähle das WLAN, mit dem sich das Display verbinden soll (2,4 GHz).",
+    scanning: "Suche Netzwerke …", rescan: "Neu suchen", other: "Anderes Netzwerk (versteckt)", ssid: "WLAN-Name", pass: "Passwort",
+    connect: "Verbinden", connecting: "Verbinde …",
+    joinOk: "Verbunden! Verbinde dein Handy jetzt wieder mit „{ssid}“ und scanne den neuen QR-Code auf dem Display, um die Spots einzurichten.",
+    joinFail: "Verbindung fehlgeschlagen. Bitte WLAN-Name und Passwort prüfen.",
+    general: "Allgemein", language: "Sprache auf dem Display", unit: "Einheit", interval: "Aktualisierung",
+    every: "alle {n} Std.", spots: "Spots", spotsHint: "Bis zu {n} Spots. Je zwei passen auf eine Seite, mit den Tasten links/rechts wird geblättert.",
+    addSpot: "+ Spot hinzufügen", spot: "Spot", name: "Name auf dem Display", search: "Ort suchen", searchPh: "z. B. Workum",
+    coords: "Koordinaten oder Google-Maps-Link", map: "Karte", hideMap: "Karte ausblenden", noResults: "Nichts gefunden",
+    dirs: "Fahrbare Windrichtungen", dirsHint: "Tippe die Richtungen an, aus denen der Wind kommen darf. Schwarz = fahrbar.", all: "Alle", none: "Keine", dirsNone: "Noch keine Richtung gewählt", dirsAll: "Alle Richtungen", dirsSel: "Fahrbar bei Wind aus:",
+    minWind: "Mindestwind ({unit})", minHint: "Ab diesem Wind und passender Richtung wird der Balken schwarz.",
+    sea: "Küstenspot: Wetterpunkt über dem Wasser verwenden", seaHint: "Für Spots am Meer oder großen Seen meist genauer.",
+    remove: "Entfernen", up: "Nach oben", down: "Nach unten",
+    wifi: "WLAN", wifiChange: "WLAN ändern", wifiKeep: "Leer lassen, um das gespeicherte Passwort zu behalten.",
+    save: "Speichern", saving: "Speichere …",
+    saved: "Gespeichert! Das Display lädt jetzt den Forecast. Diese Seite kann geschlossen werden. Für spätere Änderungen die mittlere Taste 3 Sekunden halten.",
+    needSpot: "Bitte mindestens einen Spot anlegen.", needName: "Bitte für jeden Spot einen Namen eingeben.",
+    needCoords: "Bitte für jeden Spot einen Ort wählen.", needDir: "Bitte für jeden Spot mindestens eine Windrichtung wählen.",
+    lost: "Keine Verbindung zum Display. Ist die Einstellungsseite noch geöffnet?",
+    dirNames: ["N","NNO","NO","ONO","O","OSO","SO","SSO","S","SSW","SW","WSW","W","WNW","NW","NNW"],
+  },
+  en: {
+    loading: "Loading …", data: "Weather data:",
+    wifiTitle: "Set up WiFi", wifiIntro: "Choose the WiFi the display should connect to (2.4 GHz).",
+    scanning: "Searching networks …", rescan: "Search again", other: "Other network (hidden)", ssid: "WiFi name", pass: "Password",
+    connect: "Connect", connecting: "Connecting …",
+    joinOk: "Connected! Now switch your phone back to “{ssid}” and scan the new QR code on the display to set up your spots.",
+    joinFail: "Could not connect. Please check the WiFi name and password.",
+    general: "General", language: "Display language", unit: "Unit", interval: "Update",
+    every: "every {n} h", spots: "Spots", spotsHint: "Up to {n} spots. Two fit on one page, the left/right keys switch pages.",
+    addSpot: "+ Add spot", spot: "Spot", name: "Name on the display", search: "Search place", searchPh: "e.g. Workum",
+    coords: "Coordinates or Google Maps link", map: "Map", hideMap: "Hide map", noResults: "Nothing found",
+    dirs: "Rideable wind directions", dirsHint: "Tap the directions the wind may come from. Black = rideable.", all: "All", none: "None", dirsNone: "No direction chosen yet", dirsAll: "All directions", dirsSel: "Rideable with wind from:",
+    minWind: "Minimum wind ({unit})", minHint: "From this wind with a good direction on, the bar turns black.",
+    sea: "Coastal spot: use the weather grid point over water", seaHint: "Usually more accurate at the sea or large lakes.",
+    remove: "Remove", up: "Move up", down: "Move down",
+    wifi: "WiFi", wifiChange: "Change WiFi", wifiKeep: "Leave empty to keep the saved password.",
+    save: "Save", saving: "Saving …",
+    saved: "Saved! The display is now loading the forecast. You can close this page. To change settings later, hold the middle key for 3 seconds.",
+    needSpot: "Please add at least one spot.", needName: "Please enter a name for every spot.",
+    needCoords: "Please choose a place for every spot.", needDir: "Please choose at least one wind direction for every spot.",
+    lost: "No connection to the display. Is the settings page still open?",
+    dirNames: ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"],
+  },
+  nl: {
+    loading: "Laden …", data: "Weergegevens:",
+    wifiTitle: "Wifi instellen", wifiIntro: "Kies de wifi waarmee het display verbinding moet maken (2,4 GHz).",
+    scanning: "Netwerken zoeken …", rescan: "Opnieuw zoeken", other: "Ander netwerk (verborgen)", ssid: "Wifi-naam", pass: "Wachtwoord",
+    connect: "Verbinden", connecting: "Verbinden …",
+    joinOk: "Verbonden! Verbind je telefoon nu weer met „{ssid}” en scan de nieuwe QR-code op het display om je spots in te stellen.",
+    joinFail: "Verbinden mislukt. Controleer de wifi-naam en het wachtwoord.",
+    general: "Algemeen", language: "Taal op het display", unit: "Eenheid", interval: "Bijwerken",
+    every: "elke {n} uur", spots: "Spots", spotsHint: "Maximaal {n} spots. Twee passen op een pagina, met de knoppen links/rechts blader je.",
+    addSpot: "+ Spot toevoegen", spot: "Spot", name: "Naam op het display", search: "Plaats zoeken", searchPh: "bijv. Workum",
+    coords: "Coördinaten of Google Maps-link", map: "Kaart", hideMap: "Kaart verbergen", noResults: "Niets gevonden",
+    dirs: "Geschikte windrichtingen", dirsHint: "Tik de richtingen aan waar de wind vandaan mag komen. Zwart = geschikt.", all: "Alle", none: "Geen", dirsNone: "Nog geen richting gekozen", dirsAll: "Alle richtingen", dirsSel: "Geschikt bij wind uit:",
+    minWind: "Minimale wind ({unit})", minHint: "Vanaf deze wind en een goede richting wordt de balk zwart.",
+    sea: "Kustspot: weerpunt boven het water gebruiken", seaHint: "Meestal nauwkeuriger aan zee of grote meren.",
+    remove: "Verwijderen", up: "Omhoog", down: "Omlaag",
+    wifi: "Wifi", wifiChange: "Wifi wijzigen", wifiKeep: "Leeg laten om het opgeslagen wachtwoord te behouden.",
+    save: "Opslaan", saving: "Opslaan …",
+    saved: "Opgeslagen! Het display laadt nu de verwachting. Je kunt deze pagina sluiten. Houd later de middelste knop 3 seconden ingedrukt om iets te wijzigen.",
+    needSpot: "Voeg minstens één spot toe.", needName: "Voer voor elke spot een naam in.",
+    needCoords: "Kies voor elke spot een plaats.", needDir: "Kies voor elke spot minstens één windrichting.",
+    lost: "Geen verbinding met het display. Is de instellingenpagina nog open?",
+    dirNames: ["N","NNO","NO","ONO","O","OZO","ZO","ZZO","Z","ZZW","ZW","WZW","W","WNW","NW","NNW"],
+  },
+};
+const UNITS = { kn: "kn", ms: "m/s", kmh: "km/h", bft: "Bft" };
+const BFT_MIN_KN = [0, 1, 4, 7, 11, 17, 22, 28, 34, 41, 48, 56, 64];
+
+let lang = (navigator.language || "en").slice(0, 2);
+if (!T[lang]) lang = "en";
+let state = null;
+const $ = (sel, el = document) => el.querySelector(sel);
+const t = (key, vars = {}) => (T[lang][key] || T.en[key] || key).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const h = (tag, attrs = {}, ...kids) => {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (k === "class") el.className = v;
+    else if (v !== false && v != null) el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid != null) el.append(kid);
+  return el;
+};
+
+async function api(path, body) {
+  const res = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {});
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || res.status);
+  return data;
+}
+
+// Wind units: the device stores the minimum wind in knots
+const knToUnit = (kn, u) => u === "ms" ? kn * 0.514444 : u === "kmh" ? kn * 1.852 : u === "bft" ? BFT_MIN_KN.filter(b => kn >= b - 0.5).length - 1 : kn;
+const unitToKn = (v, u) => u === "ms" ? v / 0.514444 : u === "kmh" ? v / 1.852 : u === "bft" ? BFT_MIN_KN[Math.max(0, Math.min(12, Math.round(v)))] : v;
+const fmt = v => String(Math.round(v * 10) / 10);
+
+function translateStatic() {
+  document.documentElement.lang = lang;
+  $("#lang").value = lang;
+  document.querySelectorAll("[data-t]").forEach(el => el.textContent = t(el.dataset.t));
+  $("#ver").textContent = state ? "v" + state.version : "";
+}
+
+// ---------- WiFi (setup WiFi / captive portal) ----------
+
+let nets = [], selSsid = "", scanTimer = 0;
+
+function renderWifi(app) {
+  const list = h("div", { class: "nets" });
+  const ssidIn = h("input", { type: "text", id: "ssid", autocomplete: "off", autocapitalize: "none" });
+  const passIn = h("input", { type: "password", id: "pass", autocomplete: "current-password" });
+  const other = h("div", { class: "hidden" }, h("label", { for: "ssid" }, t("ssid")), ssidIn);
+  const msg = h("div");
+  const btn = h("button", { class: "primary", onclick: join }, t("connect"));
+
+  function drawList() {
+    list.replaceChildren();
+    if (!nets.length) list.append(h("div", { class: "net muted" }, t("scanning")));
+    for (const n of nets) {
+      list.append(h("div", { class: "net" + (n.ssid === selSsid ? " sel" : ""), onclick: () => { selSsid = n.ssid; other.classList.add("hidden"); drawList(); passIn.focus(); } },
+        h("span", {}, n.ssid), h("span", {}, (n.secure ? "🔒 " : "") + bars(n.rssi))));
+    }
+    list.append(h("div", { class: "net" + (selSsid === null ? " sel" : ""), onclick: () => { selSsid = null; other.classList.remove("hidden"); drawList(); ssidIn.focus(); } }, h("span", {}, t("other"))));
+  }
+  const bars = r => r > -60 ? "▂▄▆" : r > -75 ? "▂▄" : "▂";
+
+  async function scan(refresh) {
+    clearTimeout(scanTimer);
+    try {
+      const r = await api("/api/scan" + (refresh ? "?refresh=1" : ""));
+      if (r.networks) {
+        const seen = new Set();
+        nets = r.networks.sort((a, b) => b.rssi - a.rssi).filter(n => !seen.has(n.ssid) && seen.add(n.ssid));
+        drawList();
+      }
+      if (r.scanning || refresh) scanTimer = setTimeout(() => scan(false), 1500);
+    } catch { scanTimer = setTimeout(() => scan(false), 3000); }
+  }
+
+  async function join() {
+    const ssid = selSsid === null ? ssidIn.value.trim() : selSsid;
+    if (!ssid) return;
+    btn.disabled = true;
+    btn.textContent = t("connecting");
+    msg.replaceChildren();
+    try {
+      await api("/api/wifi", { ssid, pass: passIn.value, lang });
+      for (let i = 0; i < 30; i++) {
+        await new Promise(r => setTimeout(r, 1000));
+        const r = await api("/api/wifi").catch(() => null);
+        if (r?.state === "ok") {
+          app.replaceChildren(h("h2", {}, t("wifiTitle")), h("div", { class: "msg ok" }, t("joinOk", { ssid })));
+          return;
+        }
+        if (r?.state === "fail") break;
+      }
+      msg.append(h("div", { class: "msg err" }, t("joinFail")));
+    } catch { msg.append(h("div", { class: "msg err" }, t("lost"))); }
+    btn.disabled = false;
+    btn.textContent = t("connect");
+  }
+
+  app.replaceChildren(
+    h("h2", {}, t("wifiTitle")),
+    h("div", { class: "card" },
+      h("p", { class: "muted", style: "margin-top:0" }, t("wifiIntro")),
+      list,
+      h("p", {}, h("button", { class: "small", onclick: () => { nets = []; drawList(); scan(true); } }, t("rescan"))),
+      other,
+      h("label", { for: "pass" }, t("pass")), passIn,
+      msg,
+      h("p", { style: "margin-bottom:0" }, btn)));
+  drawList();
+  scan(false);
+}
+
+// ---------- Settings ----------
+
+function compass(spot, onChange) {
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "-100 -100 200 200");
+  const draw = () => {
+    svg.replaceChildren();
+    for (let i = 0; i < 16; i++) {
+      const a0 = (i * 22.5 - 11.25 - 90) * Math.PI / 180, a1 = (i * 22.5 + 11.25 - 90) * Math.PI / 180;
+      const R = 96, r = 34;
+      const p = (rad, a) => `${(rad * Math.cos(a)).toFixed(2)} ${(rad * Math.sin(a)).toFixed(2)}`;
+      const path = document.createElementNS(ns, "path");
+      path.setAttribute("d", `M${p(r, a0)} L${p(R, a0)} A${R} ${R} 0 0 1 ${p(R, a1)} L${p(r, a1)} A${r} ${r} 0 0 0 ${p(r, a0)}Z`);
+      const on = (spot.dirs >> i) & 1;
+      path.setAttribute("class", on ? "on" : "off");
+      path.addEventListener("click", () => { spot.dirs ^= 1 << i; draw(); onChange(); });
+      const am = (i * 22.5 - 90) * Math.PI / 180;
+      const label = document.createElementNS(ns, "text");
+      label.setAttribute("x", (70 * Math.cos(am)).toFixed(1));
+      label.setAttribute("y", (70 * Math.sin(am)).toFixed(1));
+      label.setAttribute("fill", on ? "#fff" : "#555");
+      label.textContent = T[lang].dirNames[i];
+      svg.append(path, label);
+    }
+  };
+  draw();
+  return { svg, draw };
+}
+
+function parseCoords(text) {
+  const s = decodeURIComponent(text);
+  const m = s.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/) || s.match(/@(-?\d+\.\d+),\s*(-?\d+\.\d+)/) ||
+            s.match(/[?&](?:q|query|ll)=(-?\d+\.\d+),\s*(-?\d+\.\d+)/) || s.match(/^\s*(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)\s*$/);
+  if (!m) return null;
+  const lat = +m[1], lon = +m[2];
+  return Math.abs(lat) <= 90 && Math.abs(lon) <= 180 ? { lat, lon } : null;
+}
+
+let leafletLoading = null;
+function loadLeaflet() {
+  if (window.L) return Promise.resolve();
+  if (leafletLoading) return leafletLoading;
+  leafletLoading = new Promise((resolve, reject) => {
+    const css = h("link", { rel: "stylesheet", href: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" });
+    const js = h("script", { src: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" });
+    js.onload = resolve;
+    js.onerror = reject;
+    document.head.append(css, js);
+  });
+  return leafletLoading;
+}
+
+function spotCard(spot, idx, ctx) {
+  const card = h("div", { class: "card" });
+  const title = h("strong", {}, spot.name || t("spot") + " " + (idx + 1));
+  const nameIn = h("input", { type: "text", value: spot.name, maxlength: 20, oninput: e => { spot.name = e.target.value; title.textContent = spot.name || t("spot") + " " + (idx + 1); } });
+  const coordIn = h("input", { type: "text", inputmode: "text", placeholder: "52.8491, 5.4846", value: spot.lat != null ? `${spot.lat}, ${spot.lon}` : "" });
+  const results = h("div", { class: "results hidden" });
+  const searchIn = h("input", { type: "search", placeholder: t("searchPh"), enterkeyhint: "search" });
+  const mapBox = h("div", { class: "map hidden" });
+  let map = null, marker = null;
+
+  const setPos = (lat, lon, name) => {
+    spot.lat = Math.round(lat * 10000) / 10000;
+    spot.lon = Math.round(lon * 10000) / 10000;
+    coordIn.value = `${spot.lat}, ${spot.lon}`;
+    if (name && !spot.name) { spot.name = name.slice(0, 20); nameIn.value = spot.name; title.textContent = spot.name; }
+    if (map) { marker.setLatLng([spot.lat, spot.lon]); map.panTo([spot.lat, spot.lon]); }
+  };
+  coordIn.addEventListener("change", () => { const c = parseCoords(coordIn.value); if (c) setPos(c.lat, c.lon); });
+
+  let searchTimer = 0;
+  const search = async () => {
+    const q = searchIn.value.trim();
+    if (q.length < 2) { results.classList.add("hidden"); return; }
+    try {
+      const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=${lang}&format=json`).then(r => r.json());
+      results.replaceChildren(...(r.results || []).map(p => h("div", { onclick: () => { setPos(p.latitude, p.longitude, p.name); results.classList.add("hidden"); searchIn.value = ""; } },
+        h("b", {}, p.name), " ", h("span", { class: "muted" }, [p.admin1, p.country].filter(Boolean).join(", ")))));
+      if (!results.children.length) results.append(h("div", { class: "muted" }, t("noResults")));
+      results.classList.remove("hidden");
+    } catch { results.classList.add("hidden"); }
+  };
+  searchIn.addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(search, 350); });
+  searchIn.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); search(); } });
+
+  const mapBtn = h("button", { class: "small", onclick: async () => {
+    if (!mapBox.classList.contains("hidden")) { mapBox.classList.add("hidden"); mapBtn.textContent = t("map"); return; }
+    mapBox.classList.remove("hidden");
+    mapBtn.textContent = t("hideMap");
+    await loadLeaflet();
+    if (!map) {
+      const pos = spot.lat != null ? [spot.lat, spot.lon] : [52.5, 5];
+      map = L.map(mapBox).setView(pos, spot.lat != null ? 11 : 6);
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap" }).addTo(map);
+      marker = L.marker(pos, { draggable: true }).addTo(map);
+      marker.on("dragend", () => { const p = marker.getLatLng(); setPos(p.lat, p.lng); });
+      map.on("click", e => setPos(e.latlng.lat, e.latlng.lng));
+    }
+    map.invalidateSize();
+  } }, t("map"));
+
+  // Plain-text summary below the compass, so it is clear what black means
+  const dirSummary = h("div", { class: "dirsum" });
+  const updateSummary = () => {
+    const names = T[lang].dirNames.filter((_, i) => (spot.dirs >> i) & 1);
+    dirSummary.textContent = !names.length ? t("dirsNone") : names.length === 16 ? t("dirsAll") : `${t("dirsSel")} ${names.join(", ")}`;
+    dirSummary.classList.toggle("warn", !names.length);
+  };
+  const rose = compass(spot, updateSummary);
+  updateSummary();
+  const unit = ctx.unit();
+  const minIn = h("input", { type: "number", min: 0, max: unit === "bft" ? 12 : 100, step: unit === "bft" ? 1 : 0.5, inputmode: "decimal",
+    value: fmt(knToUnit(spot.min, unit)), onchange: e => { const v = parseFloat(String(e.target.value).replace(",", ".")); if (!isNaN(v)) spot.min = Math.round(unitToKn(v, ctx.unit()) * 10) / 10; } });
+  const seaIn = h("input", { type: "checkbox", checked: spot.sea, onchange: e => spot.sea = e.target.checked });
+
+  card.append(
+    h("div", { class: "spot-head" }, title,
+      h("button", { class: "icon", title: t("up"), "aria-label": t("up"), disabled: idx === 0, onclick: () => ctx.move(idx, -1) }, "↑"),
+      h("button", { class: "icon", title: t("down"), "aria-label": t("down"), disabled: idx === ctx.count() - 1, onclick: () => ctx.move(idx, 1) }, "↓"),
+      h("button", { class: "icon", title: t("remove"), "aria-label": t("remove"), onclick: () => ctx.remove(idx) }, "✕")),
+    h("label", {}, t("name")), nameIn,
+    h("label", {}, t("search")), searchIn, results,
+    h("label", {}, t("coords")), h("div", { class: "row" }, coordIn, h("div", { style: "flex:none" }, mapBtn)), mapBox,
+    h("label", {}, t("dirs")),
+    h("div", { class: "compass" }, rose.svg, h("div", { class: "side" },
+      h("span", { class: "muted" }, t("dirsHint")),
+      h("button", { class: "small", onclick: () => { spot.dirs = 0xffff; rose.draw(); updateSummary(); } }, t("all")),
+      h("button", { class: "small", onclick: () => { spot.dirs = 0; rose.draw(); updateSummary(); } }, t("none")))),
+    dirSummary,
+    h("label", {}, t("minWind", { unit: UNITS[unit] })), minIn,
+    h("div", { class: "muted", style: "margin-top:4px" }, t("minHint")),
+    h("label", { class: "check" }, seaIn, h("span", {}, t("sea"), h("br"), h("span", { class: "muted" }, t("seaHint")))));
+  return card;
+}
+
+function renderSettings(app) {
+  const s = state;
+  const spotsBox = h("div");
+  const msg = h("div");
+  const ctx = {
+    unit: () => s.unit,
+    count: () => s.spots.length,
+    move: (i, d) => { const [x] = s.spots.splice(i, 1); s.spots.splice(i + d, 0, x); draw(); },
+    remove: i => { s.spots.splice(i, 1); draw(); },
+  };
+  const addBtn = h("button", { onclick: () => { s.spots.push({ name: "", lat: null, lon: null, dirs: 0, min: 14, sea: false }); draw(); spotsBox.lastChild?.scrollIntoView({ behavior: "smooth" }); } }, t("addSpot"));
+  function draw() {
+    spotsBox.replaceChildren(...s.spots.map((sp, i) => spotCard(sp, i, ctx)));
+    addBtn.disabled = s.spots.length >= s.maxSpots;
+  }
+
+  const sel = (key, options) => h("select", { class: "f", onchange: e => { s[key] = isNaN(e.target.value) ? e.target.value : +e.target.value; if (key === "unit") draw(); if (key === "lang") { lang = s.lang; render(); } } },
+    ...options.map(([v, label]) => h("option", { value: v, selected: String(s[key]) === String(v) }, label)));
+
+  const ssidIn = h("input", { type: "text", value: s.ssid, autocapitalize: "none" });
+  const passIn = h("input", { type: "password", placeholder: "••••••••" });
+  const saveBtn = h("button", { class: "primary", onclick: save }, t("save"));
+
+  async function save() {
+    msg.replaceChildren();
+    const err = !s.spots.length ? "needSpot" : s.spots.some(p => !p.name.trim()) ? "needName" :
+      s.spots.some(p => p.lat == null) ? "needCoords" : s.spots.some(p => !p.dirs) ? "needDir" : null;
+    if (err) { msg.append(h("div", { class: "msg err" }, t(err))); return; }
+    const body = { lang: s.lang, unit: s.unit, interval: s.interval, spots: s.spots.map(p => ({ ...p, name: p.name.trim() })) };
+    if (ssidIn.value.trim() && (ssidIn.value.trim() !== s.ssid || passIn.value)) { body.ssid = ssidIn.value.trim(); body.pass = passIn.value; }
+    saveBtn.disabled = true;
+    saveBtn.textContent = t("saving");
+    try {
+      await api("/api/settings", body);
+      app.replaceChildren(h("div", { class: "msg ok" }, t("saved")));
+      window.scrollTo(0, 0);
+    } catch (e) {
+      msg.append(h("div", { class: "msg err" }, e.message === "Failed to fetch" ? t("lost") : e.message));
+      saveBtn.disabled = false;
+      saveBtn.textContent = t("save");
+    }
+  }
+
+  app.replaceChildren(
+    h("h2", {}, t("general")),
+    h("div", { class: "card" },
+      h("label", {}, t("language")), sel("lang", [["de", "Deutsch"], ["en", "English"], ["nl", "Nederlands"]]),
+      h("div", { class: "row" },
+        h("div", {}, h("label", {}, t("unit")), sel("unit", Object.entries(UNITS))),
+        h("div", {}, h("label", {}, t("interval")), sel("interval", [60, 120, 180, 240].map(n => [n, t("every", { n: n / 60 })]))))),
+    h("h2", {}, t("spots")),
+    h("p", { class: "muted" }, t("spotsHint", { n: s.maxSpots })),
+    spotsBox,
+    addBtn,
+    h("h2", {}, t("wifi")),
+    h("div", { class: "card" },
+      h("details", {}, h("summary", {}, t("wifiChange") + (s.ssid ? ` (${s.ssid})` : "")),
+        h("label", {}, t("ssid")), ssidIn,
+        h("label", {}, t("pass")), passIn,
+        h("div", { class: "muted", style: "margin-top:4px" }, t("wifiKeep")))),
+    msg,
+    h("p", {}, saveBtn));
+  draw();
+}
+
+function render() {
+  translateStatic();
+  const app = $("#app");
+  if (state.mode === "ap") renderWifi(app);
+  else renderSettings(app);
+}
+
+$("#lang").addEventListener("change", e => {
+  lang = e.target.value;
+  if (state?.mode === "sta") state.lang = lang;
+  render();
+});
+
+(async () => {
+  translateStatic();
+  try {
+    state = await api("/api/state");
+    if (state.mode === "sta") {
+      if (state.spots.length || state.lang !== "en") lang = state.lang;
+      else state.lang = lang;
+      if (!state.spots.length) state.spots.push({ name: "", lat: null, lon: null, dirs: 0, min: 14, sea: false });
+    }
+    render();
+  } catch {
+    $("#app").replaceChildren(h("div", { class: "msg err" }, t("lost")));
+  }
+})();
+</script>
+</body>
+</html>

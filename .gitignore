@@ -1,0 +1,12 @@
+.pio/
+.vscode/
+# machine-specific PlatformIO settings
+platformio_local.ini
+# generated during the build
+src/web_page.h
+site/firmware/*.bin
+# old personal WiFi file and Word documents (not part of the project)
+include/secrets.h
+docs/*.docx
+~$*
+__pycache__/
