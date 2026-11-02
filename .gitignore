@@ -10,3 +10,4 @@ include/secrets.h
 docs/*.docx
 ~$*
 __pycache__/
+Bilder/

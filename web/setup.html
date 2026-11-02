@@ -33,6 +33,12 @@
   .net { display: flex; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--line); cursor: pointer; }
   .net:last-child { border-bottom: 0; }
   .net.sel { background: var(--ink); color: #fff; }
+  .sig { display: flex; align-items: center; gap: 8px; }
+  .lock { display: flex; opacity: .7; }
+  .bars { display: flex; align-items: flex-end; gap: 2px; height: 14px; }
+  .bars i { width: 4px; background: currentColor; opacity: .25; border-radius: 1px; }
+  .bars i:nth-child(1) { height: 5px; } .bars i:nth-child(2) { height: 9px; } .bars i:nth-child(3) { height: 14px; }
+  .bars i.on { opacity: 1; }
   .spot-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
   .spot-head strong { flex: 1; font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .results { border: 1px solid var(--line); border-radius: 8px; margin-top: 4px; }
@@ -198,11 +204,17 @@ function renderWifi(app) {
     if (!nets.length) list.append(h("div", { class: "net muted" }, t("scanning")));
     for (const n of nets) {
       list.append(h("div", { class: "net" + (n.ssid === selSsid ? " sel" : ""), onclick: () => { selSsid = n.ssid; other.classList.add("hidden"); drawList(); passIn.focus(); } },
-        h("span", {}, n.ssid), h("span", {}, (n.secure ? "🔒 " : "") + bars(n.rssi))));
+        h("span", {}, n.ssid), h("span", { class: "sig" }, n.secure ? lock() : null, bars(n.rssi))));
     }
     list.append(h("div", { class: "net" + (selSsid === null ? " sel" : ""), onclick: () => { selSsid = null; other.classList.remove("hidden"); drawList(); ssidIn.focus(); } }, h("span", {}, t("other"))));
   }
-  const bars = r => r > -60 ? "▂▄▆" : r > -75 ? "▂▄" : "▂";
+  // Signal strength as three bars and a lock for protected networks (drawn, not emoji, so they look the same everywhere)
+  const bars = r => {
+    const level = r > -60 ? 3 : r > -75 ? 2 : 1;
+    return h("span", { class: "bars" }, ...[1, 2, 3].map(i => h("i", { class: i <= level ? "on" : "" })));
+  };
+  // SVG needs innerHTML: h() creates elements in the HTML namespace
+  const lock = () => Object.assign(h("span", { class: "lock" }), { innerHTML: '<svg viewBox="0 0 12 14" width="11" height="13"><rect x="1" y="6" width="10" height="7.5" rx="1.5" fill="currentColor"/><path d="M3.5 6V4.2a2.5 2.5 0 015 0V6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>' });
 
   async function scan(refresh) {
     clearTimeout(scanTimer);

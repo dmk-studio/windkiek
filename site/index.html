@@ -4,6 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Windkiek – Wind-Forecast für Kite-Spots auf ePaper</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="Windkiek – Wind-Forecast für Kite-Spots auf ePaper">
+<meta property="og:description" content="Kostenlose Open-Source-Firmware für das Seeed reTerminal E1001: vier Tage Windvorhersage für deine Spots. Kiek mal, wie der Wind weht.">
+<meta property="og:image" content="https://windkiek.de/img/social.jpg">
+<meta property="og:url" content="https://windkiek.de/">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:locale" content="de_DE">
+<meta property="og:locale:alternate" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="description" content="Kostenlose Open-Source-Firmware für das Seeed reTerminal E1001: 4-Tage-Windvorhersage für deine Kite- und Windsurf-Spots auf einem 7,5-Zoll-ePaper.">
 <style>
   @font-face { font-family: Inter; font-weight: 400; font-display: swap; src: url(fonts/Inter-400.ttf); }
@@ -31,8 +41,23 @@
   .hero h1 { font-size: clamp(36px, 5.4vw, 64px); line-height: 1.04; letter-spacing: -.025em; margin: 0 0 20px; font-weight: 800; max-width: 15ch; }
   .hero p.lead { font-size: 20px; color: var(--mute); max-width: 52ch; margin: 0 0 32px; }
   .cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-  .device { margin: 56px auto 0; max-width: 900px; background: linear-gradient(#2b2b2b, #1c1c1c); padding: clamp(12px, 3vw, 34px); border-radius: clamp(14px, 2.4vw, 26px); box-shadow: 0 30px 60px -20px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08); }
-  .device canvas { display: block; width: 100%; height: auto; background: #fff; border-radius: 2px; }
+  /* White housing like the real reTerminal, slightly wider bezel at the bottom */
+  .device { margin: 56px auto 0; max-width: 900px; background: linear-gradient(#ffffff, #f0f0ec); padding: clamp(12px, 3vw, 34px) clamp(12px, 3vw, 34px) clamp(20px, 5vw, 56px);
+            border: 1px solid #d9d9d3; border-radius: clamp(10px, 1.6vw, 18px); box-shadow: 0 30px 60px -28px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.06); }
+  .device canvas { display: block; width: 100%; height: auto; background: #fff; border-radius: 2px; box-shadow: 0 0 0 1px #c9c9c2, inset 0 0 0 1px #c9c9c2; filter: contrast(.96); }
+  .photo { display: block; width: 100%; height: auto; border-radius: 16px; background: var(--soft); }
+  .hero-photo { margin-top: 40px; aspect-ratio: 4 / 5; object-fit: cover; box-shadow: 0 30px 60px -30px rgba(0,0,0,.35); }
+  @media (min-width: 980px) {
+    header.hero .wrap { display: grid; grid-template-columns: 1fr 1.15fr; gap: 0 48px; align-items: center; }
+    header.hero picture { grid-column: 2; grid-row: 1 / span 3; }
+    header.hero .hero-photo { margin-top: 0; aspect-ratio: auto; }
+    .hero h1 { font-size: clamp(36px, 4.2vw, 56px); }
+  }
+  .photos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 16px; }
+  .photos figure { margin: 0; }
+  .photos .photo { aspect-ratio: 4 / 3; object-fit: cover; }
+  .photos figcaption { color: var(--mute); font-size: 14px; margin-top: 8px; }
+  #try .device { margin-top: 0; }
   .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 20px auto 0; max-width: 900px; }
   .seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; }
   .seg button { border: 0; border-right: 1px solid var(--line); background: none; padding: 8px 12px; font: 600 13px Inter, sans-serif; color: var(--mute); cursor: pointer; }
@@ -42,7 +67,9 @@
   section { padding: 88px 0; border-top: 1px solid var(--line); }
   section h2 { font-size: clamp(28px, 3.4vw, 40px); letter-spacing: -.02em; line-height: 1.1; margin: 0 0 16px; font-weight: 800; }
   section .sub { color: var(--mute); font-size: 19px; max-width: 60ch; margin: 0 0 48px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
   .feat { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 24px; }
   .feat h3 { margin: 14px 0 6px; font-size: 18px; }
   .feat p { margin: 0; color: var(--mute); font-size: 15.5px; }
@@ -66,6 +93,22 @@
   .shots figure { margin: 0; }
   .shots canvas { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; background: #fff; display: block; }
   .shots figcaption { color: var(--mute); font-size: 14px; margin-top: 8px; }
+  .phones-title { margin: 64px 0 24px; font-size: 22px; }
+  .phones { display: grid; grid-template-columns: repeat(3, minmax(0, 300px)); gap: 32px; justify-content: center; }
+  .phone { margin: 0; text-align: center; }
+  .phone-frame { background: #111; padding: 10px; border-radius: 34px; box-shadow: 0 24px 48px -24px rgba(0,0,0,.45); }
+  .phone-frame img { display: block; width: 100%; height: auto; border-radius: 25px; }
+  .phone figcaption { color: var(--mute); font-size: 14px; margin-top: 14px; }
+  @media (max-width: 820px) {
+    .phones { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 72%; justify-content: start; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; }
+    .phone { scroll-snap-align: center; }
+  }
+  .about { display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: center; }
+  .about img { aspect-ratio: 5 / 4; object-fit: cover; box-shadow: 0 30px 60px -30px rgba(0,0,0,.35); }
+  .about p { color: var(--mute); font-size: 17.5px; margin: 0 0 16px; max-width: 56ch; }
+  .about .sign { color: var(--ink); font-weight: 600; margin-top: 24px; }
+  .about .cta { margin-top: 24px; }
+  @media (max-width: 820px) { .about { grid-template-columns: 1fr; gap: 28px; } }
   details { border-bottom: 1px solid var(--line); padding: 18px 0; }
   details summary { font-weight: 600; cursor: pointer; font-size: 18px; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
   details summary::after { content: "+"; font-weight: 400; font-size: 24px; line-height: 1; }
@@ -90,6 +133,7 @@
   <a class="link" href="#features" data-t="navFeatures"></a>
   <a class="link" href="#setup" data-t="navSetup"></a>
   <a class="link" href="#install" data-t="navInstall"></a>
+  <a class="link" href="#about" data-t="navAbout"></a>
   <a class="link" href="#faq">FAQ</a>
   <a class="link" href="https://github.com/dmk-studio/windkiek" target="_blank" rel="noopener">GitHub</a>
   <div class="lang"><button data-lang="de">DE</button><button data-lang="en">EN</button></div>
@@ -103,6 +147,15 @@
     <a class="btn buy" href="#" target="_blank" rel="sponsored noopener" data-t="ctaBuy"></a>
     <span class="ad hidden" data-t="adNote"></span>
   </div>
+  <picture>
+    <source media="(min-width: 980px)" srcset="img/kite-800.jpg 800w, img/kite-1600.jpg 1600w" sizes="600px" width="1600" height="1227">
+    <img class="photo hero-photo" src="img/kite-tall-1200.jpg" srcset="img/kite-tall-700.jpg 700w, img/kite-tall-1200.jpg 1200w" sizes="100vw" width="1200" height="1500" data-t-alt="heroAlt" alt="">
+  </picture>
+</div></header>
+
+<section id="try"><div class="wrap">
+  <h2 data-t="tryTitle"></h2>
+  <p class="sub" data-t="trySub"></p>
   <div class="device"><canvas id="hero" width="800" height="480" aria-label="Windkiek preview"></canvas></div>
   <div class="controls">
     <div class="seg" id="pageSeg"><button data-page="0" class="on">Mirns · Xanten</button><button data-page="1">Workum · Brouwersdam</button><button data-page="2">Fehmarn</button></div>
@@ -110,7 +163,7 @@
     <div class="seg" id="langSeg"><button data-dlang="de" class="on">DE</button><button data-dlang="en">EN</button><button data-dlang="nl">NL</button></div>
   </div>
   <p class="caption" data-t="caption"></p>
-</div></header>
+</div></section>
 
 <section id="features"><div class="wrap">
   <h2 data-t="featTitle"></h2>
@@ -122,6 +175,11 @@
     <div class="feat"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="16" height="10" rx="2"/><path d="M22 11v2M6 10v4M9 10v4"/></svg><h3 data-t="f4t"></h3><p data-t="f4"></p></div>
     <div class="feat"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><h3 data-t="f5t"></h3><p data-t="f5"></p></div>
     <div class="feat"><svg viewBox="0 0 24 24"><path d="M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14"/></svg><h3 data-t="f6t"></h3><p data-t="f6"></p></div>
+  </div>
+  <div class="photos">
+    <figure><img class="photo" src="img/front-close-1600.jpg" srcset="img/front-close-800.jpg 800w, img/front-close-1600.jpg 1600w" sizes="(min-width: 980px) 350px, 100vw" width="1600" height="1200" data-t-alt="alt1" alt="" loading="lazy"><figcaption data-t="ph1"></figcaption></figure>
+    <figure><img class="photo" src="img/single-spot-1600.jpg" srcset="img/single-spot-800.jpg 800w, img/single-spot-1600.jpg 1600w" sizes="(min-width: 980px) 350px, 100vw" width="1600" height="1200" data-t-alt="alt2" alt="" loading="lazy"><figcaption data-t="ph2"></figcaption></figure>
+    <figure><img class="photo" src="img/angle-keys-1600.jpg" srcset="img/angle-keys-800.jpg 800w, img/angle-keys-1600.jpg 1600w" sizes="(min-width: 980px) 350px, 100vw" width="1600" height="1200" data-t-alt="alt3" alt="" loading="lazy"><figcaption data-t="ph3"></figcaption></figure>
   </div>
 </div></section>
 
@@ -136,6 +194,12 @@
   <div class="shots">
     <figure><canvas id="shotWifi" width="800" height="480"></canvas><figcaption data-t="shot1"></figcaption></figure>
     <figure><canvas id="shotSettings" width="800" height="480"></canvas><figcaption data-t="shot2"></figcaption></figure>
+  </div>
+  <h3 class="phones-title" data-t="phonesTitle"></h3>
+  <div class="phones">
+    <figure class="phone"><div class="phone-frame"><img src="img/phone-wifi.jpg" width="375" height="812" data-t-alt="altPw1" alt="" loading="lazy"></div><figcaption data-t="pw1"></figcaption></figure>
+    <figure class="phone"><div class="phone-frame"><img src="img/phone-spot.jpg" width="375" height="812" data-t-alt="altPw2" alt="" loading="lazy"></div><figcaption data-t="pw2"></figcaption></figure>
+    <figure class="phone"><div class="phone-frame"><img src="img/phone-map.jpg" width="375" height="812" data-t-alt="altPw3" alt="" loading="lazy"></div><figcaption data-t="pw3"></figcaption></figure>
   </div>
 </div></section>
 
@@ -163,6 +227,21 @@
   </div>
 </div></section>
 
+<section id="about"><div class="wrap about">
+  <img class="photo" src="img/daniel-800.jpg" srcset="img/daniel-800.jpg 800w, img/daniel-1600.jpg 1600w" sizes="(min-width: 820px) 520px, 100vw" width="1600" height="1280" data-t-alt="aboutAlt" alt="" loading="lazy">
+  <div>
+    <h2 data-t="aboutTitle"></h2>
+    <p data-t="aboutHome"></p>
+    <p data-t="about1"></p>
+    <p><span data-t="about2"></span><span class="aff hidden"> <span data-t="about3"></span></span></p>
+    <p class="sign" data-t="aboutSign"></p>
+    <div class="cta aff hidden">
+      <a class="btn dark buy" href="#" target="_blank" rel="sponsored noopener" data-t="ctaBuy"></a>
+      <span class="ad hidden" data-t="adNote"></span>
+    </div>
+  </div>
+</div></section>
+
 <section id="faq"><div class="wrap">
   <h2>FAQ</h2>
   <div>
@@ -171,7 +250,6 @@
     <details><summary data-t="q3"></summary><p data-t="a3"></p></details>
     <details><summary data-t="q4"></summary><p data-t="a4" data-html></p></details>
     <details><summary data-t="q5"></summary><p data-t="a5"></p></details>
-    <details><summary data-t="q6"></summary><p data-t="a6" data-html></p></details>
     <details><summary data-t="q7"></summary><p data-t="a7"></p></details>
   </div>
 </div></section>
@@ -196,11 +274,20 @@ const AFFILIATE = false;
 const T = {
   de: {
     navFeatures: "Funktionen", navSetup: "Einrichtung", navInstall: "Installieren",
-    heroTitle: "Dein Wind-Forecast. Immer an der Wand.",
+    heroTitle: "Kiek mal, wie der Wind weht.",
     heroLead: "Kostenlose Open-Source-Firmware für das Seeed reTerminal E1001: vier Tage Windvorhersage für deine Kite- und Windsurf-Spots auf einem 7,5-Zoll-ePaper. Ein Blick reicht, um zu sehen, wann es sich lohnt.",
     ctaInstall: "Firmware installieren", ctaBuy: "reTerminal E1001 kaufen",
     adNote: "* Werbung / Affiliate-Link: Ich erhalte eine Provision, für dich ändert sich der Preis nicht.",
     caption: "Interaktive Vorschau mit Beispieldaten. So sieht es auf dem Display aus.",
+    heroAlt: "Windkiek auf einem Sideboard vor einem Kitesurf-Foto, das Display zeigt den Wind-Forecast für Brouwersdam",
+    tryTitle: "Probier es aus", trySub: "Blättere durch die Seiten, wechsle Einheit und Sprache. Genau so zeichnet es das ePaper.",
+    ph1: "Gut ablesbar, auch von der anderen Seite des Raums", ph2: "Ein Spot auf der Seite: Diagramm über die volle Höhe", ph3: "Drei Tasten oben: blättern, aktualisieren, Einstellungen",
+    alt1: "Windkiek-Display von vorne auf einem Holztisch, Vorhersage für Mirns und Xanten",
+    alt2: "Windkiek-Display auf einem dunklen Sideboard neben einem Moin-Schriftzug aus Treibholz, Vorhersage für Brouwersdam",
+    alt3: "Windkiek-Display schräg von der Seite, oben auf dem Gehäuse die Tasten",
+    altPw1: "Handy-Screenshot: Liste der gefundenen WLAN-Netze mit Signalstärke",
+    altPw2: "Handy-Screenshot: Spot-Einstellungen mit Ortssuche, Kompassrose und Mindestwind",
+    altPw3: "Handy-Screenshot: Karte, auf der der Spot gesetzt wird",
     featTitle: "Alles Wichtige auf einen Blick",
     featSub: "Entwickelt von Kitern für Kiter. Kein Abo, keine App, kein Konto.",
     f1t: "4 Tage, alle 3 Stunden", f1: "Wind als Balken, Böen als Linie, dazu Wetter, Windrichtung und Temperatur von 8 bis 20 Uhr.",
@@ -214,6 +301,8 @@ const T = {
     s1t: "Firmware aufspielen", s1: "reTerminal per USB-C anschließen und unten auf „Firmware installieren“ klicken. Das dauert etwa eine Minute.",
     s2t: "WLAN verbinden", s2: "Das Display zeigt einen QR-Code. Scannen, und auf der Seite, die sich öffnet, dein WLAN auswählen.",
     s3t: "Spots eintragen", s3: "Ort suchen oder auf der Karte setzen, fahrbare Windrichtungen auf der Kompassrose antippen, Mindestwind wählen. Fertig.",
+    phonesTitle: "So sieht die Einrichtung am Handy aus",
+    pw1: "WLAN auswählen und Passwort eingeben", pw2: "Spot suchen und fahrbare Windrichtungen antippen", pw3: "Oder den Punkt einfach auf der Karte setzen",
     shot1: "Erster Start: QR-Code für das Einrichtungs-WLAN", shot2: "Danach: QR-Code für die Einstellungsseite im Heim-WLAN",
     instTitle: "Firmware installieren",
     instSub: "Direkt aus dem Browser, ohne zusätzliche Software:",
@@ -224,24 +313,40 @@ const T = {
     instUnsupported: "Dein Browser unterstützt Web Serial nicht. Bitte Chrome oder Edge am Computer verwenden.",
     instNotAllowed: "Die Installation funktioniert nur über eine sichere Verbindung (https).",
     instNote: "Die Original-Firmware (SenseCraft HMI) wird dabei überschrieben. Du kannst sie jederzeit wieder aufspielen, siehe FAQ.",
+    navAbout: "Über mich",
+    aboutTitle: "Hi, ich bin Daniel",
+    aboutAlt: "Daniel im Neoprenanzug am Strand bei Sonnenuntergang, daneben sein Kite im Sand",
+    aboutHome: "Gebürtig komme ich aus dem Ammerland im Norden Deutschlands, heute lebe ich im Ruhrgebiet. Bei meinen Großeltern wurde noch Plattdeutsch gesnackt, und ein „Moin“ gehört für mich bis heute einfach dazu, egal zu welcher Tageszeit.",
+    about1: "Ich bin leidenschaftlicher Kiter. Vor jeder Session stellt sich dieselbe Frage: Wann und wo lohnt es sich? Genau diese Antwort wollte ich auf einen Blick haben, ohne jedes Mal das Handy zu zücken.",
+    about2: "Windkiek ist mein Feierabendprojekt: ein Display, das ich selbst jeden Tag nutze und gerne mit euch teile, kostenlos und als Open Source.",
+    about3: "Wenn es euch gefällt, unterstützt mich gerne, indem ihr das reTerminal über meinen Link kauft. Für euch entstehen keine Mehrkosten.",
+    aboutSign: "Wir sehen uns auf dem Wasser! Daniel",
     q1: "Welche Hardware brauche ich?", a1: "Das Seeed reTerminal E1001 (ESP32-S3 mit 7,5-Zoll-Schwarz-Weiß-ePaper, 800 × 480 Pixel, Akku und drei Tasten). Andere Modelle der E-Serie werden derzeit nicht unterstützt.",
     q2: "Woher kommen die Wetterdaten?", a2: "Von Open-Meteo.com, mit dem Modell „Best Match“: Für jeden Ort wird automatisch das passendste Wettermodell gewählt, in den Niederlanden zum Beispiel KNMI Harmonie. Das Display fragt die Daten selbst ab, es gibt keinen eigenen Server dazwischen.",
     q3: "Wie lange hält der Akku?", a3: "Bei einer Aktualisierung alle 2 Stunden mehrere Wochen bis Monate, je nach WLAN-Empfang. Am USB-Netzteil läuft es dauerhaft.",
-    q4: "Wie bekomme ich die Original-Firmware zurück?", a4: "Seeed bietet die SenseCraft-HMI-Firmware zum Aufspielen im Browser an. Die Anleitung findest du in der <a href=\"https://sensecraft-hmi-docs.seeed.cc/en/guides/firmware-update\" target=\"_blank\" rel=\"noopener\">SenseCraft-HMI-Dokumentation</a>.",
+    q4: "Wie bekomme ich die Original-Firmware zurück?", a4: "Seeed bietet die SenseCraft-HMI-Firmware zum Aufspielen im Browser an. Die Anleitung findest du in der <a href=\"https://sensecraft-hmi-docs.seeed.cc/en/guides/getting_started/#update-your-device-firmware\" target=\"_blank\" rel=\"noopener\">SenseCraft-HMI-Dokumentation</a>.",
     q5: "Wie ändere ich später meine Spots?", a5: "Die mittlere Taste 3 Sekunden gedrückt halten. Das Display zeigt dann einen QR-Code für die Einstellungsseite. Bei 10 Sekunden werden alle Einstellungen gelöscht.",
-    q6: "Kann ich mitentwickeln?", a6: "Gerne. Der komplette Quellcode liegt auf <a href=\"https://github.com/dmk-studio/windkiek\" target=\"_blank\" rel=\"noopener\">GitHub</a>. Fehler und Ideen bitte als Issue melden.",
-    q7: "Was heißt Windkiek?", a7: "„Kieken“ ist plattdeutsch für gucken, im Niederländischen ist ein „kiekje“ ein Schnappschuss. Windkiek ist also der schnelle Blick auf den Wind: an der Wand, ohne App.",
+    q7: "Was heißt Windkiek?", a7: "„Kieken“ ist plattdeutsch für gucken, im Niederländischen ist ein „kiekje“ ein Schnappschuss. Windkiek ist also der schnelle Blick auf den Wind: zu Hause, ohne App. Daher auch unser Motto: „Kiek mal, wie der Wind weht.“",
     footLicense: "Open Source unter GPL-3.0", footData: "Wetterdaten: <a href=\"https://open-meteo.com\" target=\"_blank\" rel=\"noopener\">Open-Meteo.com</a> (CC BY 4.0) · Schrift: Inter (SIL OFL)",
     footSeeed: "Unabhängiges Projekt, nicht mit Seeed Studio verbunden. reTerminal ist eine Marke von Seeed Technology.",
     imprint: "Impressum", privacy: "Datenschutz",
   },
   en: {
     navFeatures: "Features", navSetup: "Setup", navInstall: "Install",
-    heroTitle: "Your wind forecast. Always on the wall.",
+    heroTitle: "Kiek mal – see how the wind blows.",
     heroLead: "Free open-source firmware for the Seeed reTerminal E1001: a four-day wind forecast for your kite and windsurf spots on a 7.5-inch ePaper. One glance tells you when it is worth going.",
     ctaInstall: "Install firmware", ctaBuy: "Buy reTerminal E1001",
     adNote: "* Advertising / affiliate link: I receive a commission, the price stays the same for you.",
     caption: "Interactive preview with sample data. This is how it looks on the display.",
+    heroAlt: "Windkiek on a sideboard in front of a kitesurfing photo, the display shows the wind forecast for Brouwersdam",
+    tryTitle: "Try it", trySub: "Flip through the pages, switch unit and language. This is exactly what the ePaper draws.",
+    ph1: "Easy to read, even from across the room", ph2: "One spot on a page: chart over the full height", ph3: "Three keys on top: switch pages, update, settings",
+    alt1: "Windkiek display from the front on a wooden table, forecast for Mirns and Xanten",
+    alt2: "Windkiek display on a dark sideboard next to a driftwood Moin sign, forecast for Brouwersdam",
+    alt3: "Windkiek display at an angle, the keys on top of the housing",
+    altPw1: "Phone screenshot: list of WiFi networks with signal strength",
+    altPw2: "Phone screenshot: spot settings with place search, compass rose and minimum wind",
+    altPw3: "Phone screenshot: map for placing the spot",
     featTitle: "Everything that matters at a glance",
     featSub: "Made by kiters for kiters. No subscription, no app, no account.",
     f1t: "4 days, every 3 hours", f1: "Wind as bars, gusts as a line, plus weather, wind direction and temperature from 8 am to 8 pm.",
@@ -255,6 +360,8 @@ const T = {
     s1t: "Install the firmware", s1: "Connect the reTerminal via USB-C and click “Install firmware” below. It takes about a minute.",
     s2t: "Connect to WiFi", s2: "The display shows a QR code. Scan it and choose your WiFi on the page that opens.",
     s3t: "Add your spots", s3: "Search a place or set it on the map, tap the rideable directions on the compass, choose the minimum wind. Done.",
+    phonesTitle: "This is what the setup looks like on your phone",
+    pw1: "Choose your WiFi and enter the password", pw2: "Search your spot and tap the rideable wind directions", pw3: "Or simply set the point on the map",
     shot1: "First start: QR code for the setup WiFi", shot2: "Then: QR code for the settings page in your home WiFi",
     instTitle: "Install the firmware",
     instSub: "Right from the browser, no extra software:",
@@ -265,13 +372,20 @@ const T = {
     instUnsupported: "Your browser does not support Web Serial. Please use Chrome or Edge on a computer.",
     instNotAllowed: "Installing only works over a secure connection (https).",
     instNote: "This replaces the original firmware (SenseCraft HMI). You can restore it at any time, see the FAQ.",
+    navAbout: "About",
+    aboutTitle: "Hi, I'm Daniel",
+    aboutAlt: "Daniel in a wetsuit on the beach at sunset, his kite lying in the sand next to him",
+    aboutHome: "I was born in the Ammerland in northern Germany and live in the Ruhr area today. My grandparents still spoke Low German, and a “Moin” is still part of every greeting for me, no matter the time of day.",
+    about1: "I'm a passionate kiter. Before every session it's the same question: when and where is it worth going? I wanted that answer at a glance, without reaching for my phone every time.",
+    about2: "Windkiek is my after-hours project: a display I use myself every day and am happy to share with you, free and open source.",
+    about3: "If you like it, you can support me by buying the reTerminal through my link. It costs you nothing extra.",
+    aboutSign: "See you on the water! Daniel",
     q1: "Which hardware do I need?", a1: "The Seeed reTerminal E1001 (ESP32-S3 with a 7.5-inch black-and-white ePaper, 800 × 480 pixels, battery and three keys). Other E-series models are not supported yet.",
     q2: "Where does the weather data come from?", a2: "From Open-Meteo.com with the “best match” model: the most suitable weather model is chosen for each place, for example KNMI Harmonie in the Netherlands. The display requests the data itself, there is no server in between.",
     q3: "How long does the battery last?", a3: "Several weeks to months with an update every 2 hours, depending on the WiFi signal. On a USB power supply it runs permanently.",
-    q4: "How do I get the original firmware back?", a4: "Seeed offers the SenseCraft HMI firmware for flashing in the browser. See the <a href=\"https://sensecraft-hmi-docs.seeed.cc/en/guides/firmware-update\" target=\"_blank\" rel=\"noopener\">SenseCraft HMI documentation</a>.",
+    q4: "How do I get the original firmware back?", a4: "Seeed offers the SenseCraft HMI firmware for flashing in the browser. See the <a href=\"https://sensecraft-hmi-docs.seeed.cc/en/guides/getting_started/#update-your-device-firmware\" target=\"_blank\" rel=\"noopener\">SenseCraft HMI documentation</a>.",
     q5: "How do I change my spots later?", a5: "Hold the middle key for 3 seconds. The display then shows a QR code for the settings page. Holding it for 10 seconds erases all settings.",
-    q6: "Can I contribute?", a6: "Sure. The complete source code is on <a href=\"https://github.com/dmk-studio/windkiek\" target=\"_blank\" rel=\"noopener\">GitHub</a>. Please report bugs and ideas as issues.",
-    q7: "What does Windkiek mean?", a7: "“Kieken” is Low German for “to take a look”, and in Dutch a “kiekje” is a snapshot. Windkiek is the quick look at the wind: on your wall, no app needed.",
+    q7: "What does Windkiek mean?", a7: "“Kieken” is Low German for “to take a look”, and in Dutch a “kiekje” is a snapshot. Windkiek is the quick look at the wind: at home, no app needed. Hence our motto: “Kiek mal, wie der Wind weht”, roughly “take a look at how the wind blows”.",
     footLicense: "Open source under GPL-3.0", footData: "Weather data: <a href=\"https://open-meteo.com\" target=\"_blank\" rel=\"noopener\">Open-Meteo.com</a> (CC BY 4.0) · Font: Inter (SIL OFL)",
     footSeeed: "Independent project, not affiliated with Seeed Studio. reTerminal is a trademark of Seeed Technology.",
     imprint: "Imprint", privacy: "Privacy",
@@ -324,9 +438,10 @@ function applyLang(l) {
     if (v == null) return;
     if (el.hasAttribute("data-html")) el.innerHTML = v; else el.textContent = v;
   });
+  document.querySelectorAll("[data-t-alt]").forEach(el => el.alt = T[l][el.dataset.tAlt] || "");
   document.querySelectorAll(".lang button").forEach(b => b.classList.toggle("on", b.dataset.lang === l));
   document.querySelectorAll("a.buy").forEach(a => { a.href = BUY_URL; if (AFFILIATE) a.textContent += " *"; });
-  document.querySelectorAll(".ad").forEach(el => el.classList.toggle("hidden", !AFFILIATE));
+  document.querySelectorAll(".ad, .aff").forEach(el => el.classList.toggle("hidden", !AFFILIATE));
   // Display language follows the site language until chosen explicitly
   if (!document.querySelector("#langSeg button.on")?.dataset.picked) {
     view.lang = l;

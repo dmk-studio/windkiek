@@ -1,5 +1,7 @@
 # Windkiek for the reTerminal E1001
 
+*Kiek mal – see how the wind blows.*
+
 [Deutsch](README.de.md)
 
 Free open-source firmware that turns the **Seeed reTerminal E1001** (ESP32-S3, 7.5" black-and-white ePaper)
@@ -14,7 +16,7 @@ into a wind forecast display for kite, windsurf and sailing spots.
 - Runs on battery: deep sleep between updates (every 1–4 h)
 - Weather data from [Open-Meteo.com](https://open-meteo.com) (CC BY 4.0), model "best match"
 
-**Website and web installer:** https://dmk-studio.github.io/windkiek/
+**Website and web installer:** https://windkiek.de/
 
 ## Installation
 
@@ -25,7 +27,7 @@ into a wind forecast display for kite, windsurf and sailing spots.
 3. Click **Install** and choose the port (usually "USB-SERIAL CH340").
 
 The original firmware (SenseCraft HMI) is replaced. Seeed explains how to restore it in the
-[SenseCraft HMI documentation](https://sensecraft-hmi-docs.seeed.cc/en/guides/firmware-update).
+[SenseCraft HMI documentation](https://sensecraft-hmi-docs.seeed.cc/en/guides/getting_started/#update-your-device-firmware).
 
 ### With PlatformIO
 

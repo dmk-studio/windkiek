@@ -95,7 +95,7 @@ Settings JSON:
 
 1. Raise `FW_VERSION` in `include/config.h` and `site/preview.js`, add a `CHANGELOG.md` entry.
 2. Push to `main`: GitHub Actions builds the firmware and publishes `site/` with the firmware on GitHub Pages
-   (one-time: repository settings → Pages → Source: GitHub Actions).
+   (one-time: repository settings → Pages → Source: GitHub Actions, custom domain `windkiek.de`).
 3. Tag `vX.Y.Z` and push the tag: the workflow attaches `windkiek.bin` to a GitHub release.
 
 ## Hardware (reTerminal E1001)
