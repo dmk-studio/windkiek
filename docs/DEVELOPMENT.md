@@ -96,7 +96,19 @@ Settings JSON:
 1. Raise `FW_VERSION` in `include/config.h` and `site/preview.js`, add a `CHANGELOG.md` entry.
 2. Push to `main`: GitHub Actions builds the firmware and publishes `site/` with the firmware on GitHub Pages
    (one-time: repository settings → Pages → Source: GitHub Actions, custom domain `windkiek.de`).
-3. Tag `vX.Y.Z` and push the tag: the workflow attaches `windkiek.bin` to a GitHub release.
+3. Tag `vX.Y.Z` and push the tag (`git tag -a v1.0.1 -m "Windkiek 1.0.1"`, `git push origin main v1.0.1`):
+   the workflow creates a GitHub release with `windkiek.bin`, its text is the matching `CHANGELOG.md` section.
+
+## Website
+
+Live at https://windkiek.de (GitHub Pages, DNS at netcup). Texts for both languages are in the `T` table in
+`site/index.html`. The shop link is `BUY_URL`; with `AFFILIATE = true` the page shows the support sentence
+in the about section and labels all shop links as advertising. When the affiliate link goes live, also name the
+partner program in `site/datenschutz.html` (see the comment there).
+
+Visitor statistics: GoatCounter without cookies (`site/vendor/goatcounter/count.js`, site code `windkiek`).
+Elements with `data-goatcounter-click` (install button, shop links) are counted as events.
+Visits from localhost are not counted.
 
 ## Hardware (reTerminal E1001)
 

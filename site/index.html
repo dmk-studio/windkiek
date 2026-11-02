@@ -126,6 +126,8 @@
   @media (max-width: 480px) { .wrap { padding: 0 16px; } .btn { width: 100%; justify-content: center; } }
 </style>
 <script type="module" src="vendor/esp-web-tools/install-button.js"></script>
+<!-- Cookieless visitor statistics (GoatCounter); clicks on elements with data-goatcounter-click count as events -->
+<script data-goatcounter="https://windkiek.goatcounter.com/count" async src="vendor/goatcounter/count.js"></script>
 </head>
 <body>
 <nav><div class="wrap">
@@ -144,7 +146,7 @@
   <p class="lead" data-t="heroLead"></p>
   <div class="cta">
     <a class="btn dark" href="#install" data-t="ctaInstall"></a>
-    <a class="btn buy" href="#" target="_blank" rel="sponsored noopener" data-t="ctaBuy"></a>
+    <a class="btn buy" href="#" target="_blank" rel="sponsored noopener" data-goatcounter-click="buy-hero" data-t="ctaBuy"></a>
     <span class="ad hidden" data-t="adNote"></span>
   </div>
   <picture>
@@ -216,12 +218,12 @@
     </div>
     <div class="box">
       <esp-web-install-button manifest="firmware/manifest.json">
-        <button slot="activate" class="btn light" data-t="instBtn"></button>
+        <button slot="activate" class="btn light" data-goatcounter-click="install" data-t="instBtn"></button>
         <span slot="unsupported"><small data-t="instUnsupported"></small></span>
         <span slot="not-allowed"><small data-t="instNotAllowed"></small></span>
       </esp-web-install-button>
       <small data-t="instNote"></small>
-      <a class="btn buy" href="#" target="_blank" rel="sponsored noopener" data-t="ctaBuy"></a>
+      <a class="btn buy" href="#" target="_blank" rel="sponsored noopener" data-goatcounter-click="buy-install" data-t="ctaBuy"></a>
       <small class="ad hidden" data-t="adNote"></small>
     </div>
   </div>
@@ -236,7 +238,7 @@
     <p><span data-t="about2"></span><span class="aff hidden"> <span data-t="about3"></span></span></p>
     <p class="sign" data-t="aboutSign"></p>
     <div class="cta aff hidden">
-      <a class="btn dark buy" href="#" target="_blank" rel="sponsored noopener" data-t="ctaBuy"></a>
+      <a class="btn dark buy" href="#" target="_blank" rel="sponsored noopener" data-goatcounter-click="buy-about" data-t="ctaBuy"></a>
       <span class="ad hidden" data-t="adNote"></span>
     </div>
   </div>
