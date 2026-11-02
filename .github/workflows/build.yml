@@ -42,10 +42,16 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+      # Release notes: the CHANGELOG section of this version (tag v1.0.0 -> "## 1.0.0 ...")
+      - if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          awk -v v="${GITHUB_REF_NAME#v}" '/^## / { on = index($0, "## " v " ") == 1; next } on' CHANGELOG.md > release-notes.md
+          printf '\nInstall in the browser: https://windkiek.de\n' >> release-notes.md
       - if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: .pio/build/reterminal_e1001/windkiek.bin
+          body_path: release-notes.md
 
   pages:
     if: github.ref == 'refs/heads/main'
